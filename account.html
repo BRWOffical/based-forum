@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BASED FORUM - ACCOUNT</title>
+    <style>
+        body {
+            background-image: url('https://i.postimg.cc/WpM6nsSM/background.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+            font-family: 'Impact', sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        #top-bar {
+            background-color: red;
+            border: 4px solid black;
+            text-align: center;
+            font-size: 48px;
+            color: black;
+            padding: 10px;
+            margin: 0;
+            text-shadow: 1px 1px white;
+        }
+
+        #sidebar {
+            background-color: red;
+            border-right: 4px solid black;
+            width: 200px;
+            position: fixed;
+            top: 75px;
+            bottom: 0;
+            left: 0;
+            display: block;
+            padding-top: 20px;
+        }
+
+        .side-btn {
+            display: block;
+            background: transparent;
+            color: white;
+            font-family: 'Impact', sans-serif;
+            font-size: 26px;
+            text-align: center;
+            border: none;
+            margin: 25px 0;
+            padding: 10px;
+            text-decoration: none;
+            cursor: pointer;
+            text-shadow: 2px 2px black;
+        }
+
+        .side-btn:hover {
+            color: darkred;
+            text-shadow: 1px 1px white;
+        }
+
+        #account-container {
+            margin-left: 260px;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .action-box {
+            background: black;
+            border: 3px solid red;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 450px;
+        }
+
+        .action-box h3 {
+            margin-top: 0;
+            color: red;
+            font-size: 28px;
+            text-shadow: 1px 1px white;
+        }
+
+        .action-box input {
+            display: block;
+            width: 90%;
+            margin: 10px auto;
+            padding: 8px;
+            font-family: 'Impact', sans-serif;
+            background: #222;
+            color: white;
+            border: 1px solid red;
+            font-size: 18px;
+        }
+
+        .action-box button {
+            background: red;
+            color: black;
+            font-family: 'Impact', sans-serif;
+            font-size: 20px;
+            cursor: pointer;
+            border: 2px solid white;
+            padding: 5px 15px;
+        }
+
+        .action-box button:hover {
+            background: darkred;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="top-bar">BASED FORUM</div>
+
+    <div id="sidebar">
+        <a href="https://brwoffical.github.io/brutal-right-wing/" target="_blank" class="side-btn">Website</a>
+        <a href="https://brwoffical.github.io/brw-joining/" target="_blank" class="side-btn">Socials</a>
+        <a href="https://brwoffical.github.io/based-forum/post.html" class="side-btn">Post</a>
+        <a href="https://brwoffical.github.io/based-forum/account.html" class="side-btn">Account</a>
+        <a href="https://brwoffical.github.io/based-forum/account.html" class="side-btn">Search</a>
+    </div>
+
+    <div id="account-container">
+        <h1 id="account-title" style="font-size: 50px; text-shadow: 2px 2px black;">Manage your @<span id="current-user-name"></span></h1>
+        
+        <div style="margin: 20px 0;">
+            <img id="account-pfp-preview" src="https://i.postimg.cc/8CJLRgjz/skull.png" alt="PFP" style="width: 100px; height: 100px; border: 3px solid red; object-fit: cover; display: block; margin: 0 auto;" onerror="this.src='https://i.postimg.cc/8CJLRgjz/skull.png'">
+        </div>
+
+        <!-- 1. Change Name -->
+        <div class="action-box">
+            <h3>CHANGE USERNAME</h3>
+            <input type="text" id="new-name-input" placeholder="New Username (Max 20)" maxlength="20">
+            <button onclick="changeName()">Update Name</button>
+            <p id="name-error" style="color:red; margin: 5px 0 0 0;"></p>
+        </div>
+
+        <!-- 2. Change PFP -->
+        <div class="action-box">
+            <h3>CHANGE PFP</h3>
+            <input type="text" id="new-pfp-input" placeholder="Image URL (GitHub Raw link)">
+            <button onclick="changePfp()">Update PFP</button>
+        </div>
+
+        <!-- 3. Delete Account -->
+        <div class="action-box" style="border-color: darkred;">
+            <h3 style="color: darkred;">DANGER ZONE</h3>
+            <button onclick="deleteAccount()" style="background: darkred; color: white;">Delete Account</button>
+        </div>
+    </div>
+
+    <script>
+        // Check login state
+        const currentUser = localStorage.getItem("bf_user");
+        if (!currentUser) {
+            window.location.href = "index.html"; // Kick back to login if not logged in
+        } else {
+            document.getElementById("current-user-name").innerText = currentUser;
+            
+            // Load custom pfp if exists
+            let pfps = JSON.parse(localStorage.getItem("bf_pfps")) || {};
+            if (pfps[currentUser]) {
+                document.getElementById("account-pfp-preview").src = pfps[currentUser];
+                document.getElementById("new-pfp-input").value = pfps[currentUser];
+            }
+        }
+
+        function changeName() {
+            let newName = document.getElementById("new-name-input").value.trim();
+            if (newName === "") return;
+
+            let users = JSON.parse(localStorage.getItem("bf_users")) || {};
+            
+            if (users[newName]) {
+                document.getElementById("name-error").innerText = "Error: Name already taken!";
+                return;
+            }
+
+            // Move password to new username key
+            let pass = users[currentUser];
+            delete users[currentUser];
+            users[newName] = pass;
+            localStorage.setItem("bf_users", JSON.stringify(users));
+
+            // Move PFP mapping if exists
+            let pfps = JSON.parse(localStorage.getItem("bf_pfps")) || {};
+            if (pfps[currentUser]) {
+                pfps[newName] = pfps[currentUser];
+                delete pfps[currentUser];
+                localStorage.setItem("bf_pfps", JSON.stringify(pfps));
+            }
+
+            // Update current user session
+            localStorage.setItem("bf_user", newName);
+            alert("Username changed successfully!");
+            window.location.reload();
+        }
+
+        function changePfp() {
+            let newPfp = document.getElementById("new-pfp-input").value.trim();
+            if (newPfp === "") return;
+
+            let pfps = JSON.parse(localStorage.getItem("bf_pfps")) || {};
+            pfps[currentUser] = newPfp;
+            localStorage.setItem("bf_pfps", JSON.stringify(pfps));
+
+            document.getElementById("account-pfp-preview").src = newPfp;
+            alert("PFP updated successfully!");
+        }
+
+        function deleteAccount() {
+            if (confirm("Are you fucking sure you want to delete your account? This will wipe your login data.")) {
+                let users = JSON.parse(localStorage.getItem("bf_users")) || {};
+                delete users[currentUser];
+                localStorage.setItem("bf_users", JSON.stringify(users));
+
+                let pfps = JSON.parse(localStorage.getItem("bf_pfps")) || {};
+                delete pfps[currentUser];
+                localStorage.setItem("bf_pfps", JSON.stringify(pfps));
+
+                localStorage.removeItem("bf_user");
+                window.location.href = "index.html";
+            }
+        }
+    </script>
+</body>
+</html>
