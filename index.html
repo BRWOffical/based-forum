@@ -208,7 +208,7 @@
         const currentUser = localStorage.getItem("bf_user");
 
         // Fetch and display posts
-       async function loadPosts() {
+        async function loadPosts() {
             let { data: posts, error } = await supabaseClient
                 .from('posts')
                 .select('*')
@@ -337,6 +337,14 @@
             } else {
                 document.getElementById("log-error").innerText = "Error: Wrong info";
             }
+        }
+
+        // Auto-run on page load OUTSIDE functions
+        if (currentUser) {
+            document.getElementById("login-screen").style.display = "none";
+            document.getElementById("sidebar").style.display = "block";
+            document.getElementById("forum-feed").style.display = "block";
+            loadPosts();
         }
     </script>
 </body>
