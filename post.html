@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BASED FORUM - Create Post</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            background-image: url('https://i.postimg.cc/WpM6nsSM/background.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+            font-family: 'Impact', sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        #top-bar {
+            background-color: red;
+            border: 4px solid black;
+            text-align: center;
+            font-size: 48px;
+            color: black;
+            padding: 10px;
+            margin: 0;
+            text-shadow: 1px 1px white;
+        }
+
+        .container {
+            background: black;
+            border: 4px solid red;
+            width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container input, .container textarea {
+            display: block;
+            width: 90%;
+            margin: 15px auto;
+            padding: 8px;
+            font-family: 'Impact', sans-serif;
+            background: #222;
+            color: white;
+            border: 2px solid red;
+        }
+
+        .container textarea {
+            height: 100px;
+            resize: none;
+        }
+
+        .container button {
+            background: red;
+            color: black;
+            font-family: 'Impact', sans-serif;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px 20px;
+            border: 2px solid white;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-top: 15px;
+            color: white;
+            text-decoration: underline;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="top-bar">CREATE POST</div>
+
+    <div class="container">
+        <h2>NEW THREAD</h2>
+        <input type="text" id="post-img" placeholder="Image URL (e.g. Postimg link)">
+        <textarea id="post-content" placeholder="Write your post content here... (Max 5000 chars)" maxlength="5000"></textarea>
+        <button onclick="createPost()">Submit Post</button>
+        <p id="post-error" style="color:red;"></p>
+        <br>
+        <a href="index.html" class="back-btn">Back to Feed</a>
+    </div>
+
+    <script>
+        // Supabase Initialization (Same keys)
+        const SUPABASE_URL = 'https://pijgbmtbaslwgsyrjmlb.supabase.co';
+        const SUPABASE_KEY = 'sb_secret_ofCU1FhgwBvKpIcz7Yzm8Q_zdJSv5E_';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let currentUser = localStorage.getItem("bf_user");
+
+        if (!currentUser) {
+            alert("You must be logged in to post!");
+            window.location.href = "index.html";
+        }
+
+        async function createPost() {
+            let imageUrl = document.getElementById("post-img").value.trim();
+            let content = document.getElementById("post-content").value.trim();
+
+            if (content === "") {
+                document.getElementById("post-error").innerText = "Post content cannot be empty!";
+                return;
+            }
+
+            // Insert into Supabase posts table
+            let { error } = await supabaseClient
+                .from('posts')
+                .insert([
+                    { username: currentUser, image_url: imageUrl, content: content }
+                ]);
+
+            if (error) {
+                document.getElementById("post-error").innerText = "Error: " + error.message;
+            } else {
+                alert("Post created successfully!");
+                window.location.href = "index.html";
+            }
+        }
+    </script>
+</body>
+</html>
