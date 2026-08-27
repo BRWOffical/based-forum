@@ -145,6 +145,7 @@
         .post-text {
             font-size: 20px;
             margin-bottom: 15px;
+            word-break: break-word;
         }
 
         .post-controls button {
@@ -167,7 +168,7 @@
     <div id="sidebar">
         <a href="https://brwoffical.github.io/brutal-right-wing/" target="_blank" class="side-btn">Website</a>
         <a href="https://brwoffical.github.io/brw-joining/" target="_blank" class="side-btn">Socials</a>
-        <a href="https://brwoffical.github.io/based-forum/post" class="side-btn">Post</a>
+        <a href="https://brwoffical.github.io/based-forum/post.html" class="side-btn">Post</a>
         <a href="https://brwoffical.github.io/based-forum/account" class="side-btn">Account</a>
         <a href="https://brwoffical.github.io/based-forum/account" class="side-btn">Search</a>
     </div>
@@ -194,30 +195,52 @@
         </div>
     </div>
 
-    <div id="forum-feed">
-        <div class="post">
-            <div class="post-user">
-                <img src="https://i.postimg.cc/8CJLrGjz/skull.png" alt="PFP">
-                <span>Admin</span>
-            </div>
-            <img class="post-image" src="https://i.postimg.cc/WpM6nsSM/background.png" alt="Post Image">
-            <div class="post-text">Welcome to the BASED FORUM. This is a test post to show the layout. Max 5000 chars later.</div>
-            <div class="post-controls">
-                <button onclick="alert('Liked!')">Like</button>
-                <button onclick="alert('Disliked!')">Dislike</button>
-                <button onclick="alert('Comments coming soon!')">COMMENTS</button>
-                <button class="author-only hidden" style="background:grey;">Edit</button>
-                <button class="author-only hidden" style="background:grey;">Delete</button>
-            </div>
-        </div>
-    </div>
+    <!-- Empty container ready for posts -->
+    <div id="forum-feed"></div>
 
     <script>
-
+        // Init Supabase
         const SUPABASE_URL = 'https://pijgbmtbaslwgsyrjmlb.supabase.co';
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamdibXRiYXNsd2dzeXJqbWxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4MjY4NjcsImV4cCI6MjEwMzQwMjg2N30.3-vk1u_qPrjDi2fMe9L32JgTPcJU0SyPlErG5HS0IIo";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
+
+        // Fetch and display posts
+        async function loadPosts() {
+            let { data: posts, error } = await supabaseClient
+                .from('posts')
+                .select('*')
+                .order('id', { ascending: false });
+
+            let feed = document.getElementById("forum-feed");
+            if (!feed) return;
+            
+            if (error) {
+                console.log("Error loading posts:", error.message);
+                return;
+            }
+
+            feed.innerHTML = ""; // Clear out before adding
+
+            posts.forEach(post => {
+                let postHTML = `
+                    <div class="post">
+                        <div class="post-user">
+                            <img src="${post.pfp || 'https://i.postimg.cc/8CJLRgjz/skull.png'}" alt="PFP">
+                            <span>${post.username}</span>
+                        </div>
+                        ${post.image_url ? `<img class="post-image" src="${post.image_url}" alt="Post Image">` : ''}
+                        <div class="post-text">${post.content}</div>
+                        <div class="post-controls">
+                            <button onclick="alert('Liked!')">Like</button>
+                            <button onclick="alert('Disliked!')">Dislike</button>
+                            <button onclick="alert('Comments coming soon!')">COMMENTS</button>
+                        </div>
+                    </div>
+                `;
+                feed.innerHTML += postHTML;
+            });
+        }
+
         let currentUser = localStorage.getItem("bf_user");
 
         if (currentUser) {
@@ -229,6 +252,9 @@
                 let adminBtns = document.querySelectorAll('.author-only');
                 adminBtns.forEach(btn => btn.classList.remove('hidden'));
             }
+
+            // Load posts since user is logged in
+            loadPosts();
         }
 
         function showModal(id) {
