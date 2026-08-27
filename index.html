@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BASED FORUM</title>
+    <style>
+        body {
+            background-image: url('https://i.postimg.cc/WpM6nsSM/background.png');
+            font-family: 'Impact', sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        #top-bar {
+            background-color: red;
+            border: 4px solid black;
+            text-align: center;
+            font-size: 48px;
+            color: black;
+            padding: 10px;
+            margin: 0;
+            text-shadow: 1px 1px white;
+        }
+
+        #sidebar {
+            background-color: red;
+            border-right: 4px solid black;
+            width: 200px;
+            position: fixed;
+            top: 80px;
+            bottom: 0;
+            left: 0;
+            display: none;
+            padding-top: 20px;
+        }
+
+        .side-btn {
+            display: block;
+            background: black;
+            color: white;
+            font-family: 'Impact', sans-serif;
+            font-size: 24px;
+            text-align: center;
+            border: 2px solid white;
+            margin: 10px;
+            padding: 10px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .side-btn:hover {
+            background: grey;
+        }
+
+        #login-screen {
+            text-align: center;
+            margin-top: 150px;
+        }
+
+        #login-screen h1 {
+            font-size: 60px;
+            text-shadow: 2px 2px black;
+        }
+
+        .auth-btn {
+            color: red;
+            font-size: 30px;
+            cursor: pointer;
+            text-decoration: underline;
+            margin: 0 20px;
+            text-shadow: 1px 1px black;
+        }
+
+        .modal {
+            display: none;
+            background: black;
+            border: 4px solid red;
+            width: 300px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .modal input {
+            display: block;
+            width: 90%;
+            margin: 10px auto;
+            padding: 5px;
+            font-family: 'Impact', sans-serif;
+        }
+
+        .modal button {
+            background: red;
+            color: black;
+            font-family: 'Impact', sans-serif;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        #forum-feed {
+            display: none;
+            margin-left: 220px;
+            padding: 20px;
+            max-width: 800px;
+            margin-top: 20px;
+        }
+
+        .post {
+            background: black;
+            border: 3px solid red;
+            margin-bottom: 30px;
+            padding: 15px;
+        }
+
+        .post-user {
+            display: flex;
+            align-items: center;
+            border-bottom: 2px dashed red;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .post-user img {
+            width: 50px;
+            height: 50px;
+            margin-right: 15px;
+            border: 2px solid white;
+        }
+
+        .post-image {
+            max-width: 100%;
+            border: 1px solid white;
+            margin-bottom: 10px;
+        }
+
+        .post-text {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        .post-controls button {
+            background: red;
+            color: black;
+            font-family: 'Impact', sans-serif;
+            border: 2px solid white;
+            cursor: pointer;
+            padding: 5px 10px;
+            margin-right: 10px;
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="top-bar">BASED FORUM</div>
+
+    <div id="sidebar">
+        <a href="https://brwoffical.github.io/brutal-right-wing/" target="_blank" class="side-btn">Website</a>
+        <a href="https://brwoffical.github.io/brw-joining/" target="_blank" class="side-btn">Socials</a>
+        <a href="https://brwoffical.github.io/based-forum/post" class="side-btn">Post</a>
+        <a href="https://brwoffical.github.io/based-forum/account" class="side-btn">Account</a>
+        <a href="https://brwoffical.github.io/based-forum/account" class="side-btn">Search</a>
+    </div>
+
+    <div id="login-screen">
+        <h1>LOGIN/REGISTER TO ENTER</h1>
+        <span class="auth-btn" onclick="showModal('register-modal')">register</span>
+        <span class="auth-btn" onclick="showModal('login-modal')">login</span>
+
+        <div id="register-modal" class="modal">
+            <h2>REGISTER</h2>
+            <input type="text" id="reg-name" placeholder="Username (Max 20)" maxlength="20">
+            <input type="password" id="reg-pass" placeholder="Password (Max 15)" maxlength="15">
+            <button onclick="register()">Submit</button>
+            <p id="reg-error" style="color:red;"></p>
+        </div>
+
+        <div id="login-modal" class="modal">
+            <h2>LOGIN</h2>
+            <input type="text" id="log-name" placeholder="Username">
+            <input type="password" id="log-pass" placeholder="Password">
+            <button onclick="login()">Submit</button>
+            <p id="log-error" style="color:red;"></p>
+        </div>
+    </div>
+
+    <div id="forum-feed">
+        <!-- Mock Post to show how it looks -->
+        <div class="post">
+            <div class="post-user">
+                <img src="https://i.postimg.cc/8CJLrGjz/skull.png" alt="PFP">
+                <span>Admin</span>
+            </div>
+            <img class="post-image" src="https://i.postimg.cc/WpM6nsSM/background.png" alt="Post Image">
+            <div class="post-text">Welcome to the BASED FORUM. This is a test post to show the layout. Max 5000 chars later.</div>
+            <div class="post-controls">
+                <button onclick="alert('Liked!')">Like</button>
+                <button onclick="alert('Disliked!')">Dislike</button>
+                <button onclick="alert('Comments coming soon!')">COMMENTS</button>
+                <button class="author-only hidden" style="background:grey;">Edit</button>
+                <button class="author-only hidden" style="background:grey;">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if logged in
+        let currentUser = localStorage.getItem("bf_user");
+
+        if (currentUser) {
+            document.getElementById("login-screen").style.display = "none";
+            document.getElementById("sidebar").style.display = "flex";
+            document.getElementById("forum-feed").style.display = "block";
+            
+            // Show edit/delete for author (Mocked as admin for now)
+            if(currentUser === "Admin") {
+                let adminBtns = document.querySelectorAll('.author-only');
+                adminBtns.forEach(btn => btn.classList.remove('hidden'));
+            }
+        }
+
+        function showModal(id) {
+            document.getElementById('register-modal').style.display = 'none';
+            document.getElementById('login-modal').style.display = 'none';
+            document.getElementById(id).style.display = 'block';
+        }
+
+        function register() {
+            let name = document.getElementById("reg-name").value;
+            let pass = document.getElementById("reg-pass").value;
+            
+            if (name === "" || pass === "") return;
+
+            let users = JSON.parse(localStorage.getItem("bf_users")) || {};
+            
+            if (users[name]) {
+                document.getElementById("reg-error").innerText = "Error: Name taken";
+                return;
+            }
+
+            users[name] = pass;
+            localStorage.setItem("bf_users", JSON.stringify(users));
+            localStorage.setItem("bf_user", name);
+            window.location.reload();
+        }
+
+        function login() {
+            let name = document.getElementById("log-name").value;
+            let pass = document.getElementById("log-pass").value;
+            
+            let users = JSON.parse(localStorage.getItem("bf_users")) || {};
+
+            if (users[name] && users[name] === pass) {
+                localStorage.setItem("bf_user", name);
+                window.location.reload();
+            } else {
+                document.getElementById("log-error").innerText = "Error: Wrong info";
+            }
+        }
+    </script>
+</body>
+</html>
