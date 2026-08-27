@@ -110,11 +110,14 @@
                 return;
             }
 
+            // If it's empty or not a link, set it to null so it doesn't break the feed
+            let finalImageUrl = imageUrl.startsWith('http') ? imageUrl : null;
+
             // Insert into Supabase posts table
             let { error } = await supabaseClient
                 .from('posts')
                 .insert([
-                    { username: currentUser, image_url: imageUrl, content: content }
+                    { username: currentUser, image_url: finalImageUrl, content: content }
                 ]);
 
             if (error) {
