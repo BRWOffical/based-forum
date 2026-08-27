@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BASED FORUM - SEARCH</title>
+    <style>
+        body {
+            background-image: url('https://i.postimg.cc/WpM6nsSM/background.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-position: center;
+            font-family: 'Impact', sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        #top-bar {
+            background-color: red;
+            border: 4px solid black;
+            text-align: center;
+            font-size: 48px;
+            color: black;
+            padding: 10px;
+            margin: 0;
+            text-shadow: 1px 1px white;
+        }
+
+        #sidebar {
+            background-color: red;
+            border-right: 4px solid black;
+            width: 200px;
+            position: fixed;
+            top: 75px;
+            bottom: 0;
+            left: 0;
+            display: block;
+            padding-top: 20px;
+        }
+
+        .side-btn {
+            display: block;
+            background: transparent;
+            color: white;
+            font-family: 'Impact', sans-serif;
+            font-size: 26px;
+            text-align: center;
+            border: none;
+            margin: 25px 0;
+            padding: 10px;
+            text-decoration: none;
+            cursor: pointer;
+            text-shadow: 2px 2px black;
+        }
+
+        .side-btn:hover {
+            color: darkred;
+            text-shadow: 1px 1px white;
+        }
+
+        #search-container {
+            margin-left: 260px;
+            padding: 20px;
+            max-width: 800px;
+        }
+
+        .search-box {
+            background: black;
+            border: 3px solid red;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 10px;
+            font-family: 'Impact', sans-serif;
+            font-size: 20px;
+            background: #222;
+            color: white;
+            border: 1px solid red;
+        }
+
+        .search-box button {
+            background: red;
+            color: black;
+            font-family: 'Impact', sans-serif;
+            font-size: 20px;
+            cursor: pointer;
+            border: 2px solid white;
+            padding: 10px 20px;
+        }
+
+        .search-box button:hover {
+            background: darkred;
+            color: white;
+        }
+
+        .result-card {
+            background: black;
+            border: 3px solid red;
+            margin-bottom: 20px;
+            padding: 15px;
+        }
+
+        .result-tag {
+            display: inline-block;
+            background: red;
+            color: black;
+            padding: 2px 8px;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .result-user {
+            color: red;
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        .result-text {
+            font-size: 18px;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="top-bar">BASED FORUM</div>
+
+    <div id="sidebar">
+        <a href="https://brwoffical.github.io/brutal-right-wing/" target="_blank" class="side-btn">Website</a>
+        <a href="https://brwoffical.github.io/brw-joining/" target="_blank" class="side-btn">Socials</a>
+        <a href="https://brwoffical.github.io/based-forum/post.html" class="side-btn">Post</a>
+        <a href="https://brwoffical.github.io/based-forum/account.html" class="side-btn">Account</a>
+        <a href="https://brwoffical.github.io/based-forum/search.html" class="side-btn">Search</a>
+    </div>
+
+    <div id="search-container">
+        <h1 style="font-size: 50px; text-shadow: 2px 2px black; text-align: center;">SEARCH FORUM</h1>
+        
+        <div class="search-box">
+            <input type="text" id="search-query" placeholder="Search posts or comments..." onkeypress="if(event.key==='Enter') search()">
+            <button onclick="search()">SEARCH</button>
+        </div>
+
+        <div id="results-feed"></div>
+    </div>
+
+    <script>
+        // Check login state
+        const currentUser = localStorage.getItem("bf_user");
+        if (!currentUser) {
+            window.location.href = "index.html";
+        }
+
+        const SUPABASE_URL = 'https://pijgbmtbaslwgsyrjmlb.supabase.co';
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamdibXRiYXNsd2dzeXJqbWxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4MjY4NjcsImV4cCI6MjEwMzQwMjg2N30.3-vk1u_qPrjDi2fMe9L32JgTPcJU0SyPlErG5HS0IIo";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function search() {
+            let query = document.getElementById("search-query").value.trim();
+            let feed = document.getElementById("results-feed");
+
+            if (query === "") return;
+
+            feed.innerHTML = "<p style='font-size:24px; text-align:center;'>Searching...</p>";
+
+            // Search posts
+            let { data: matchedPosts } = await supabaseClient
+                .from('posts')
+                .select('*')
+                .ilike('content', `%${query}%`);
+
+            // Search comments
+            let { data: matchedComments } = await supabaseClient
+                .from('comments')
+                .select('*')
+                .ilike('content', `%${query}%`);
+
+            feed.innerHTML = "";
+
+            let totalResults = (matchedPosts ? matchedPosts.length : 0) + (matchedComments ? matchedComments.length : 0);
+
+            if (totalResults === 0) {
+                feed.innerHTML = "<p style='font-size:24px; text-align:center; color:red;'>No posts or comments found, lol.</p>";
+                return;
+            }
+
+            // Display matching posts
+            if (matchedPosts) {
+                matchedPosts.forEach(post => {
+                    feed.innerHTML += `
+                        <div class="result-card">
+                            <span class="result-tag">POST</span>
+                            <div class="result-user">${post.username}</div>
+                            ${post.image_url ? `<img src="${post.image_url}" style="max-width:100%; border:1px solid white; margin-bottom:10px;">` : ''}
+                            <div class="result-text">${post.content}</div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Display matching comments
+            if (matchedComments) {
+                matchedComments.forEach(comment => {
+                    feed.innerHTML += `
+                        <div class="result-card" style="border-color: darkred;">
+                            <span class="result-tag" style="background: darkred; color: white;">COMMENT</span>
+                            <div class="result-user">${comment.username}</div>
+                            <div class="result-text">${comment.content}</div>
+                        </div>
+                    `;
+                });
+            }
+        }
+    </script>
+</body>
+</html>
