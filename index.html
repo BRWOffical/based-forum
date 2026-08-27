@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BASED FORUM</title>
     <style>
-body {
+        body {
             background-image: url('https://i.postimg.cc/WpM6nsSM/background.png');
             background-size: cover;
             background-repeat: no-repeat;
@@ -33,7 +33,7 @@ body {
             border-right: 4px solid black;
             width: 200px;
             position: fixed;
-            top: 80px;
+            top: 75px;
             bottom: 0;
             left: 0;
             display: none;
@@ -42,20 +42,22 @@ body {
 
         .side-btn {
             display: block;
-            background: black;
+            background: transparent;
             color: white;
             font-family: 'Impact', sans-serif;
-            font-size: 24px;
+            font-size: 26px;
             text-align: center;
-            border: 2px solid white;
-            margin: 10px;
+            border: none;
+            margin: 25px 0;
             padding: 10px;
             text-decoration: none;
             cursor: pointer;
+            text-shadow: 2px 2px black;
         }
 
         .side-btn:hover {
-            background: grey;
+            color: darkred;
+            text-shadow: 1px 1px white;
         }
 
         #login-screen {
@@ -104,7 +106,7 @@ body {
 
         #forum-feed {
             display: none;
-            margin-left: 220px;
+            margin-left: 260px;
             padding: 20px;
             max-width: 800px;
             margin-top: 20px;
@@ -192,7 +194,6 @@ body {
     </div>
 
     <div id="forum-feed">
-        <!-- Mock Post to show how it looks -->
         <div class="post">
             <div class="post-user">
                 <img src="https://i.postimg.cc/8CJLrGjz/skull.png" alt="PFP">
@@ -211,15 +212,13 @@ body {
     </div>
 
     <script>
-        // Check if logged in
         let currentUser = localStorage.getItem("bf_user");
 
         if (currentUser) {
             document.getElementById("login-screen").style.display = "none";
-            document.getElementById("sidebar").style.display = "flex";
+            document.getElementById("sidebar").style.display = "block"; 
             document.getElementById("forum-feed").style.display = "block";
             
-            // Show edit/delete for author (Mocked as admin for now)
             if(currentUser === "Admin") {
                 let adminBtns = document.querySelectorAll('.author-only');
                 adminBtns.forEach(btn => btn.classList.remove('hidden'));
