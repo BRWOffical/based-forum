@@ -204,8 +204,11 @@
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamdibXRiYXNsd2dzeXJqbWxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4MjY4NjcsImV4cCI6MjEwMzQwMjg2N30.3-vk1u_qPrjDi2fMe9L32JgTPcJU0SyPlErG5HS0IIo";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        // Get the logged in user
+        const currentUser = localStorage.getItem("bf_user");
+
         // Fetch and display posts
-        async function loadPosts() {
+       async function loadPosts() {
             let { data: posts, error } = await supabaseClient
                 .from('posts')
                 .select('*')
@@ -219,42 +222,82 @@
                 return;
             }
 
-            feed.innerHTML = ""; // Clear out before adding
+            feed.innerHTML = "";
 
-            posts.forEach(post => {
+            for (let post of posts) {
+                // Fetch comments for this specific post
+                let { data: comments } = await supabaseClient
+                    .from('comments')
+                    .select('*')
+                    .eq('post_id', post.id)
+                    .order('id', { ascending: true });
+
+                let commentsHTML = '';
+                if (comments) {
+                    comments.forEach(c => {
+                        commentsHTML += `
+                            <div style="background: #1a0000; border-top: 1px dashed red; padding: 8px 12px; margin-top: 5px; font-size: 16px;">
+                                <strong style="color: red;">${c.username}:</strong> ${c.content}
+                            </div>
+                        `;
+                    });
+                }
+
+                let hasValidImg = post.image_url && post.image_url.startsWith('http');
                 let postHTML = `
                     <div class="post">
                         <div class="post-user">
-                            <img src="${post.pfp || 'https://i.postimg.cc/13h1kTzW/pfp.png'}" alt="PFP">
+                            <img src="${post.pfp || 'https://i.postimg.cc/8CJLRgjz/skull.png'}" alt="PFP">
                             <span>${post.username}</span>
                         </div>
-                        ${post.image_url ? `<img class="post-image" src="${post.image_url}" alt="Post Image">` : ''}
+                        ${hasValidImg ? `<img class="post-image" src="${post.image_url}" alt="Post Image">` : ''}
                         <div class="post-text">${post.content}</div>
                         <div class="post-controls">
                             <button onclick="alert('Liked!')">Like</button>
                             <button onclick="alert('Disliked!')">Dislike</button>
-                            <button onclick="alert('Comments coming soon!')">COMMENTS</button>
+                        </div>
+                        
+                        <!-- Comments Section -->
+                        <div style="margin-top: 15px; border-top: 2px solid red; padding-top: 10px;">
+                            <h4 style="margin: 0 0 10px 0; color: red;">COMMENTS</h4>
+                            <div style="max-height: 200px; overflow-y: auto; margin-bottom: 10px;">
+                                ${commentsHTML || '<p style="color: gray; font-size: 14px; margin: 5px 0;">No comments yet.</p>'}
+                            </div>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="text" id="comment-input-${post.id}" placeholder="Write a comment..." maxlength="500" style="flex: 1; padding: 5px; background: #222; color: white; border: 1px solid red; font-family: 'Impact', sans-serif;">
+                                <button onclick="addComment(${post.id})" style="background: red; color: black; border: 1px solid white; padding: 5px 10px; cursor: pointer; font-family: 'Impact', sans-serif;">REPLY</button>
+                            </div>
                         </div>
                     </div>
                 `;
                 feed.innerHTML += postHTML;
-            });
+            }
         }
 
-        let currentUser = localStorage.getItem("bf_user");
+        async function addComment(postId) {
+            let input = document.getElementById(`comment-input-${postId}`);
+            let content = input.value.trim();
 
-        if (currentUser) {
-            document.getElementById("login-screen").style.display = "none";
-            document.getElementById("sidebar").style.display = "block"; 
-            document.getElementById("forum-feed").style.display = "block";
-            
-            if(currentUser === "Admin") {
-                let adminBtns = document.querySelectorAll('.author-only');
-                adminBtns.forEach(btn => btn.classList.remove('hidden'));
+            if (content === "") return;
+
+            // Make sure someone is logged in before posting
+            if (!currentUser) {
+                alert("You must be logged in to comment!");
+                return;
             }
 
-            // Load posts since user is logged in
-            loadPosts();
+            let { error } = await supabaseClient
+                .from('comments')
+                .insert([
+                    { post_id: postId, username: currentUser, content: content }
+                ]);
+
+            if (error) {
+                alert("Error posting comment: " + error.message);
+            } else {
+                input.value = "";
+                loadPosts(); // Reload feed to show comment instantly
+            }
         }
 
         function showModal(id) {
