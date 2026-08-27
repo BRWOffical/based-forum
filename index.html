@@ -212,6 +212,11 @@
     </div>
 
     <script>
+
+        const SUPABASE_URL = 'https://pijgbmtbaslwgsyrjmlb.supabase.co';
+        const SUPABASE_KEY = 'sb_secret_ofCU1FhgwBvKpIcz7Yzm8Q_zdJSv5E_';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
         let currentUser = localStorage.getItem("bf_user");
 
         if (currentUser) {
