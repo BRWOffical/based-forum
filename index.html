@@ -207,6 +207,41 @@
         // Get the logged in user
         const currentUser = localStorage.getItem("bf_user");
 
+        // BAN CHECK & INIT PAGE
+        async function initPage() {
+            try {
+                let res = await fetch('https://api.ipify.org?format=json');
+                let data = await res.json();
+                
+                let { data: banned } = await supabaseClient
+                    .from('banned_ips')
+                    .select('*')
+                    .eq('ip', data.ip);
+
+                if (banned && banned.length > 0) {
+                    document.body.innerHTML = `<div style="background:black; color:red; height:100vh; display:flex; justify-content:center; align-items:center; font-family:'Impact', sans-serif; font-size:100px;">Get banned LOL</div>`;
+                    return;
+                }
+
+                if (currentUser) {
+                    document.getElementById("login-screen").style.display = "none";
+                    document.getElementById("sidebar").style.display = "block";
+                    document.getElementById("forum-feed").style.display = "block";
+                    loadPosts();
+                }
+            } catch(e) {
+                console.log("Ban check error:", e);
+            }
+        }
+
+        async function logUserIp(username) {
+            try {
+                let res = await fetch('https://api.ipify.org?format=json');
+                let { ip } = await res.json();
+                await supabaseClient.from('user_ips').insert([{ username: username, ip: ip }]);
+            } catch(e) { console.log(e); }
+        }
+
         // Fetch and display posts
         async function loadPosts() {
             let { data: posts, error } = await supabaseClient
@@ -264,7 +299,7 @@
                                 ${commentsHTML || '<p style="color: gray; font-size: 14px; margin: 5px 0;">No comments yet.</p>'}
                             </div>
                             <div style="display: flex; gap: 5px;">
-                                <input type="text" id="comment-input-${post.id}" placeholder="Write a comment..." maxlength="500" style="flex: 1; padding: 5px; background: #222; color: white; border: 1px solid red; font-family: 'Impact', sans-serif;">
+                                <input type="text" id="comment-input-${post.id}" placeholder="Write a comment..." maxlength="1000" style="flex: 1; padding: 5px; background: #222; color: white; border: 1px solid red; font-family: 'Impact', sans-serif;">
                                 <button onclick="addComment(${post.id})" style="background: red; color: black; border: 1px solid white; padding: 5px 10px; cursor: pointer; font-family: 'Impact', sans-serif;">REPLY</button>
                             </div>
                         </div>
@@ -306,7 +341,7 @@
             document.getElementById(id).style.display = 'block';
         }
 
-        function register() {
+        async function register() {
             let name = document.getElementById("reg-name").value;
             let pass = document.getElementById("reg-pass").value;
             
@@ -322,10 +357,12 @@
             users[name] = pass;
             localStorage.setItem("bf_users", JSON.stringify(users));
             localStorage.setItem("bf_user", name);
+            
+            await logUserIp(name);
             window.location.reload();
         }
 
-        function login() {
+        async function login() {
             let name = document.getElementById("log-name").value;
             let pass = document.getElementById("log-pass").value;
             
@@ -333,19 +370,16 @@
 
             if (users[name] && users[name] === pass) {
                 localStorage.setItem("bf_user", name);
+                
+                await logUserIp(name);
                 window.location.reload();
             } else {
                 document.getElementById("log-error").innerText = "Error: Wrong info";
             }
         }
 
-        // Auto-run on page load OUTSIDE functions
-        if (currentUser) {
-            document.getElementById("login-screen").style.display = "none";
-            document.getElementById("sidebar").style.display = "block";
-            document.getElementById("forum-feed").style.display = "block";
-            loadPosts();
-        }
+        // Run ban check before showing anything
+        initPage();
     </script>
 </body>
 </html>
